@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { getSingleProduct } from "../../APIs/Product";
 function ProductItem(props) {
   const { id, img, price, title } = props;
+  
+
   const format = (n) => {
     return n.toLocaleString("vi-VN", {
       style: "currency",
@@ -11,7 +14,9 @@ function ProductItem(props) {
   };
   return (
     <Container>
-      <Image src={img} alt="" />
+      <Link to={`/product/${id}`}>
+        <Image src={img} alt="" />
+      </Link>
       <IconContainer>
         <Button>
           mua <i className="wi wi-night-partly-cloudy"></i>
@@ -19,7 +24,9 @@ function ProductItem(props) {
         <Button>thêm vào giỏ</Button>
       </IconContainer>
       <ProductInfo>
-        <Title>{title}</Title>
+        <Link to={`/product/${id}`}>
+          <Title>{title}</Title>
+        </Link>
         <Price>{format(price)}</Price>
       </ProductInfo>
     </Container>
@@ -39,6 +46,7 @@ const IconContainer = styled.div`
 
 const Container = styled.div`
   width: 25%;
+  padding: 12 px;
   position: relative;
 
   &:hover ${IconContainer} {

@@ -1,35 +1,57 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { getAllProduct } from "../../APIs/Product";
+import { getAllProduct, getProductHome } from "../../APIs/Product";
 import ProductItem from "./ProductItem";
 
-function ProductList() {
+function ProductList(props) {
+  const {count,category} = props
   const [products, setProducts] = useState([]);
   useEffect(() => {
-    getAllProduct().then((data) => setProducts(data));
-  }, []);
+    category ? (
+      getAllProduct(category).then((data) => setProducts(data))
+    ):
+    (
+      getProductHome().then((data) => setProducts(data))
+    )
+   
+  }, [category]);
 
+  console.log(category)
   return (
     <Container>
       <Wrapper>
         {
-
+          count ? (
+            products?.slice(0,12).map((product) => (
+              <ProductItem
+                id={product._id}
+                img={product.image.asset.url}
+                key={product._id}
+                title={product.name}
+                price={product.price}
+              />
+            ))
+          ):
+          (
+            products?.map((product) => (
+              <ProductItem
+                id={product._id}
+                img={product.image.asset.url}
+                key={product._id}
+                title={product.name}
+                price={product.price}
+              />
+            ))
+          )
         }
-        {products?.slice(0,12).map((product) => (
-          <ProductItem
-            id={product._id}
-            img={product.image.asset.url}
-            key={product._id}
-            title={product.name}
-            price={product.price}
-          />
-        ))}
+      
       </Wrapper>
     </Container>
   );
 }
 
-const Container = styled.div``;
+const Container = styled.div`
+`;
 
 const Wrapper = styled.div`
   display: flex;

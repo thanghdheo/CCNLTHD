@@ -17,7 +17,7 @@ const Container = styled.div``;
 const Title = styled.h1`
   text-align: center;
   font-size: 150px;
-  font-size: calc(1em + 30vmin);
+  font-size: calc(1em + 25vmin);
   font-weight: 900;
 
   --x-offset: -0.0625em;

@@ -12,7 +12,7 @@ function Home() {
         <Banner />
         <Categories />
         <Announcement />
-        <ProductList />
+        <ProductList count={12} />
         <Announcement />
         <Footer/>
     </Container>

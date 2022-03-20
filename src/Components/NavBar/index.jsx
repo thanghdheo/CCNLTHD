@@ -1,40 +1,44 @@
 import React, { useEffect, useState } from "react";
-import './style.css'
+import "./style.css";
 import styled from "styled-components";
 import { client } from "../../APIs";
 import { getListCategory } from "../../APIs/Category";
+import { Link } from "react-router-dom";
 
 function NavBar() {
   const [navbar, setNavbar] = useState(false);
-  const [listCategory,setListCategory] =  useState([])
-  
+  const [listCategory, setListCategory] = useState([]);
+
   const changeBackground = () => {
-    console.log(window.scrollY)
     if (window.scrollY >= 60) {
-      setNavbar(true)
+      setNavbar(true);
     } else {
-      setNavbar(false)
+      setNavbar(false);
     }
-  }
+  };
 
   useEffect(() => {
-    changeBackground()
-    window.addEventListener("scroll", changeBackground)
-  },[navbar])
+    changeBackground();
+    window.addEventListener("scroll", changeBackground);
+  }, [navbar]);
 
   useEffect(() => {
-    getListCategory().then(data => setListCategory(data))
-  },[])
+    getListCategory().then((data) => setListCategory(data));
+  }, []);
 
   return (
-    <Container  bg={navbar? '#fff' : 'transparent'}>
+    <Container bg={navbar ? "#fff" : "transparent"}>
       <Wrapper>
         <LeftWrapper>
-          <Logo>SIX GROUP</Logo>
+          <Link style={{ textDecoration: "none" }} to="/">
+            <Logo>SIX GROUP</Logo>
+          </Link>
           <NavMenu>
-            {
-              listCategory.map(item =>   <MenuItem key={item._id}>{item.name}</MenuItem>)
-            }
+            {listCategory.map((item) => (
+              <Link to={`/products/${item._id}`}>
+                <MenuItem key={item._id}>{item.name}</MenuItem>
+              </Link>
+            ))}
           </NavMenu>
         </LeftWrapper>
         <RightWrapper>
@@ -55,18 +59,18 @@ export default NavBar;
 const Container = styled.div`
   height: 60px;
   padding: 0 24px;
-  background-color: ${props => props.bg} ;
-  position: fixed ;
-  top:0 ;
-  left:0 ;
-  right:0 ;
-  z-index: 2 ;
+  background-color: ${(props) => props.bg};
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
 `;
 
 const Wrapper = styled.div`
   display: flex;
   justify-content: space-between;
-  height:60px ;
+  height: 60px;
 `;
 
 const LeftWrapper = styled.div`
@@ -80,7 +84,7 @@ const RightWrapper = styled(LeftWrapper)`
 `;
 
 const Logo = styled.h1`
- --x-offset: -0.0625em;
+  --x-offset: -0.0625em;
   --y-offset: 0.0625em;
   --stroke: 0.025em;
   --background-color: white;
@@ -94,7 +98,6 @@ const Logo = styled.h1`
 const NavMenu = styled.ul`
   list-style: none;
   display: flex;
-  
 `;
 
 const MenuItem = styled.li`
