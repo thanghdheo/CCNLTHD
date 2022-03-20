@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { getSingleProduct } from "../../APIs/Product";
+import { addProduct } from "../../Redux/CartSlice";
 function ProductItem(props) {
   const { id, img, price, title } = props;
-  
+  const [product, setProduct] = useState({});
+  const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    getSingleProduct(id).then((data) => setProduct(...data));
+  }, [id]);
 
   const format = (n) => {
     return n.toLocaleString("vi-VN", {
@@ -12,16 +19,29 @@ function ProductItem(props) {
       currency: "VND",
     });
   };
+
+  const dispatch = useDispatch();
+
+  const handleAddBuy = () => {
+    dispatch(
+      addProduct({
+        ...product,
+        quantity,
+      })
+    );
+  };
   return (
     <Container>
       <Link to={`/product/${id}`}>
         <Image src={img} alt="" />
       </Link>
       <IconContainer>
+          <Link to={`/product/${id}`} style={{color:'#fff',textDecoration:'none'}}>
         <Button>
-          mua <i className="wi wi-night-partly-cloudy"></i>
+            mua ngay <i className="wi wi-night-partly-cloudy"></i>
         </Button>
-        <Button>thêm vào giỏ</Button>
+          </Link>
+        <Button onClick={handleAddBuy}>thêm vào giỏ</Button>
       </IconContainer>
       <ProductInfo>
         <Link to={`/product/${id}`}>

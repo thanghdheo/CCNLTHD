@@ -17,7 +17,8 @@ export const getAllProduct = (category) => {
         categoryProduct->{
             _id,
             name
-        }
+        },
+        _createdAt
     }`,{
 
     })
@@ -63,7 +64,8 @@ export const getSingleProduct = (id) => {
         categoryProduct->{
             _id,
             name
-        }
+        },
+        
     }`,{
 
     })

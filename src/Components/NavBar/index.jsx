@@ -4,10 +4,18 @@ import styled from "styled-components";
 import { client } from "../../APIs";
 import { getListCategory } from "../../APIs/Category";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { Badge } from "@mui/material";
 
 function NavBar() {
   const [navbar, setNavbar] = useState(false);
   const [listCategory, setListCategory] = useState([]);
+
+  const cart = useSelector((state) => state.carts);
+
+  console.log(cart);
 
   const changeBackground = () => {
     if (window.scrollY >= 60) {
@@ -46,7 +54,13 @@ function NavBar() {
             <MenuItem>Đăng nhập</MenuItem>
             <MenuItem>Đăng ký</MenuItem>
             <MenuItem>Tìm kiếm</MenuItem>
-            <MenuItem>Giỏ hàng</MenuItem>
+            <Link to="/cart">
+              <MenuItem>
+                <Badge badgeContent={cart.quantity} color="primary">
+                  <ShoppingCartIcon color="action" />
+                </Badge>
+              </MenuItem>
+            </Link>
           </SubMenu>
         </RightWrapper>
       </Wrapper>

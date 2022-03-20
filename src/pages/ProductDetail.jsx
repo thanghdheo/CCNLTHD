@@ -53,7 +53,6 @@ function ProductDetail() {
                
                 <ButtonContainer>
                     <ButtonCard >THÊM VÀO GIỎ</ButtonCard>
-                    <ButtonBuy>MUA NGAY</ButtonBuy>
                 </ButtonContainer>
             </ProductDesc>
             </Wrapper>

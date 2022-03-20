@@ -14,15 +14,14 @@ const options = [
   "Giá: Giảm dần",
   "Cũ nhất",
   "Mới nhất",
-  "Bán chạy nhất",
 ];
 
 function Products() {
-  const [value, setValue] = useState(options[3]);
+  const [value, setValue] = useState(options[0]);
   const [inputValue, setInputValue] = useState("");
 
   const {category} = useParams()
-  console.log(category)
+
 
   return (
     <Container>
@@ -42,7 +41,7 @@ function Products() {
           renderInput={(params) => <TextField {...params} type="text" />}
         />
       </Wrapper>
-      <ProductList category={category} />
+      <ProductList category={category} value={value} />
       <Announcement />
       <Footer />
     </Container>
