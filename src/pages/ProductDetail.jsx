@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { getSingleProduct } from '../APIs/Product';
 import Footer from '../Components/Footer';
+import { addProduct } from '../Redux/CartSlice';
 
 function ProductDetail() {
   const [product,setProduct] = useState({})
+  const navigate = useNavigate()
+  const dispatch = useDispatch();
+
   const format = (n) => {
     return n?.toLocaleString("vi-VN", {
       style: "currency",
@@ -18,6 +24,16 @@ function ProductDetail() {
   useEffect(() => {
     getSingleProduct(id).then(data => setProduct(...data))
   },[id])
+
+  const handleBuyStock = () => {
+    dispatch(
+      addProduct({
+        ...product,
+        quantity: 1,
+      })
+    );
+    navigate('/cart')
+  }
 
 
   console.log(product)
@@ -52,6 +68,7 @@ function ProductDetail() {
                 <DescPrice>{format(product?.price)}</DescPrice>
                
                 <ButtonContainer>
+                    <ButtonBuy onClick={handleBuyStock}>MUA NGAY</ButtonBuy>
                     <ButtonCard >THÊM VÀO GIỎ</ButtonCard>
                 </ButtonContainer>
             </ProductDesc>

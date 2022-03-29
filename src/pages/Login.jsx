@@ -1,75 +1,146 @@
-import React, { useState } from 'react'
-import styled from 'styled-components'
-import Footer from '../Components/Footer'
+import { TextField } from "@mui/material";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import swal from "sweetalert";
+import Footer from "../Components/Footer";
 
-function Login() {
-    const [username,setUserName] = useState("")
-    const [password,setPassWord] = useState("")
+function Login(props) {
+  const {setToken} = props
+  const navigate = useNavigate();
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
 
-    const handleLogin = e => {
-        e.preventDefault()
-    }
-    return (
-        <Container>
-            <Wrapper>
-                <div>
-                <Title>ĐĂNG NHẬP</Title>
-                <Form>
-                    <Input placeholder="Tên đăng nhập" onChange={e => setUserName(e.target.value)} />
-                    <Input type='password' placeholder="Mật khẩu" onChange={e => setPassWord(e.target.value)}/>
-                    <Button onClick = {e => handleLogin(e)}>Đăng nhập</Button>
-                </Form>
-                <BackText>Quên mật khẩu ?</BackText>
-                <BackText>Đăng ký</BackText>
-                </div>
-            </Wrapper>
-            <Footer />
-        </Container>
-      )
-    }
-    
-    const Container = styled.div`
-        margin-top: 60px;
-    `
-    const Wrapper = styled.div`
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 30px 0;
-    `
-    
-    const Title = styled.h4`
-        text-align: center;
-    `
-    
-    const Form = styled.form`
-        display: flex;
-        flex-direction: column;
-    `
-    
-    const Input = styled.input`
-        margin: 12px 0;
-        width: 500px;
-        padding: 18px 12px;
-        border: none;
-        outline: none;
-        background-color: #dddbdb;
-    `
-    
-    const BackText = styled.span`
-        font-size: 14px;
-        text-decoration: underline;
-        cursor: pointer;
-    `
-    
-    const Button = styled.button`
-        outline: none;
-        border: none;
-        padding: 12px 24px;
-        background-color: #000;
-        color:#fff;
-        font-weight: 700;
-        margin-bottom: 12px;
-    `
+  const handleLogin = async ({ username, password }) => {
+    await axios
+      .post(" https://velzon-authenticate.herokuapp.com/auth/local/login", {
+        username: username,
+        password: password,
+      })
+      .then((res) => {
+        swal("Thông báo !", "Đăng nhập thành công !", "success");
+        localStorage.setItem("token", JSON.stringify(res.data));
+        navigate(-1);
+        setToken(JSON.parse(localStorage.getItem("token")))
+      })
+      .catch(() => {
+        swal("Lỗi !", "Kiểm tra lại tên đăng nhập hoặc mật khẩu !", "error");
+      });
+  };
+  return (
+    <Container>
+      <Wrapper>
+        <div>
+          <Title>ĐĂNG NHẬP</Title>
+          <Form onSubmit={handleSubmit(handleLogin)} noValidate>
+            <Controller
+              name="username"
+              rules={{
+                required: "Tên đăng nhập không được để trống",
+              }}
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  variant="outlined"
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="username"
+                  label="Tên đăng nhập"
+                  autoFocus
+                  style={{ width: "500px" }}
+                  error={!!errors.username}
+                  helperText={errors.username?.message}
+                />
+              )}
+            />
+            <Controller
+              name="password"
+              rules={{
+                required: "Mật khẩu không được để trống",
+              }}
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  variant="outlined"
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="password"
+                  label="Mật khẩu"
+                  type="password"
+                  style={{ width: "500px" }}
+                  error={!!errors.password}
+                  helperText={errors.password?.message}
+                />
+              )}
+            />
+            <Button type="submit">Đăng nhập</Button>
+          </Form>
+          <BackText>Quên mật khẩu ?</BackText>
+          <BackText>Đăng ký</BackText>
+        </div>
+      </Wrapper>
+      <Footer />
+    </Container>
+  );
+}
 
-export default Login
+const Container = styled.div`
+  margin-top: 60px;
+`;
+const Wrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 0;
+`;
+
+const Title = styled.h4`
+  text-align: center;
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+`;
+
+const Input = styled.input`
+  margin: 12px 0;
+  width: 500px;
+  padding: 18px 12px;
+  border: none;
+  outline: none;
+  background-color: #dddbdb;
+`;
+
+const BackText = styled.span`
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+`;
+
+const Button = styled.button`
+  outline: none;
+  border: none;
+  padding: 12px 24px;
+  background-color: #000;
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 12px;
+`;
+
+export default Login;

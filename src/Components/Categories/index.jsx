@@ -16,7 +16,7 @@ function Categories() {
       {listCategory
         .filter((item, index) => index < 3)
         .map((item) => (
-          <Link to={`/products/${item._id}`}>
+          <Link key={item._id} to={`/products/${item._id}`}>
             <Category key={item._id}>
               <CategoryItem img="/block_home_category3_new.webp" />
               <CategoryText>{item.name}</CategoryText>

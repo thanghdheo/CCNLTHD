@@ -1,10 +1,17 @@
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import AddIcon from "@mui/icons-material/Add";
+import { getSingleProduct } from "../APIs/Product";
+import RemoveIcon from "@mui/icons-material/Remove";
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import styled from "styled-components";
 import Footer from "../Components/Footer";
+import { addProduct, deleteProduct, removeProduct } from "../Redux/CartSlice";
+import { client } from "../APIs";
 
 function Cart() {
   const cart = useSelector((state) => state.carts);
+  const dispatch = useDispatch()
 
   const format = (n) => {
     return n.toLocaleString("vi-VN", {
@@ -12,6 +19,46 @@ function Cart() {
       currency: "VND",
     });
   };
+
+  const  handleAddProduct = async (id) => {
+    const product = await getSingleProduct(id)
+    dispatch(
+      addProduct({
+        ...product[0],
+        quantity :1,
+      })
+    );
+  }
+  const  handleRemoveProduct = async (id) => {
+    const product = await getSingleProduct(id)
+    dispatch(
+      removeProduct({
+        ...product[0],
+        quantity :1,
+      })
+    );
+  }
+
+  const  handleDeleteProduct = async (id,price) => {
+    const product = await getSingleProduct(id)
+    dispatch(
+      deleteProduct({
+        ...product[0],
+        price
+      })
+    );
+  }
+
+  const doc = {
+    _type: "role",
+    name: "Test",
+  }
+
+  const handleCheckOut = () => {
+    client.create(doc).then((res) => {
+      console.log(`Bill was created, document ID is ${res._id}`)
+    })
+  }
 
   return (
     <Container>
@@ -23,30 +70,27 @@ function Cart() {
             <TopText>Giỏ hàng({cart.quantity})</TopText>
             <TopText>Danh sách đợi (0)</TopText>
           </TopTexts>
-          <TopButton type="filled">THANH TOÁN NGAY</TopButton>
         </Top>
         <Bottom>
           <Info>
             {cart?.products.map((item) => (
               <Product>
                 <ProductDetail>
-                  <Image src={item.image.asset.url} />
+                  <Image src={item?.image?.asset?.url} />
                   <Details>
-                    <ProductName>
-                      <b>Products : </b>
-                      {item.name}
-                    </ProductName>
-                    {/* <ProductSize>
-                    <b>Size : </b>
-                    S
-                  </ProductSize> */}
+                    <ProductName>{item.name}</ProductName>
                   </Details>
                 </ProductDetail>
                 <PriceDetail>
                   <ProductAmountContainer>
+                    <AddIcon onClick={() =>  handleAddProduct(item._id)}  style={{cursor: 'pointer'}} />
                     <ProductAmount>{item.quantity}</ProductAmount>
+                    <RemoveIcon onClick={item.quantity > 1 && ( () =>  handleRemoveProduct(item._id))} style={{cursor: 'pointer'}}/>
+                    <DeleteOutlineIcon onClick={() =>  handleDeleteProduct(item._id,item.price)} style={{color:'red',cursor: 'pointer'}} />
                   </ProductAmountContainer>
-                  <ProductPrice>{format(item.price)}</ProductPrice>
+                  <ProductPrice>{format(item.price)}
+                  </ProductPrice>
+                  
                 </PriceDetail>
               </Product>
             ))}
@@ -80,7 +124,7 @@ function Cart() {
                   amount={cart.total * 100}
                   stripeKey={"pk_test_51KRGNrKyG1K6atfRya9NVyO2Hb6qEDKSu3OZI4ybO01UGnp0Z4PkYe09TGKPivtEzX3gJeZmu2fRU05mzhpsteb800vfAH7TY6"}
                 > */}
-            <Button>THANH TOÁN NGAY</Button>
+            <Button onClick = {handleCheckOut}>THANH TOÁN NGAY</Button>
             {/* </StripeCheckout> */}
           </Summary>
         </Bottom>
@@ -155,7 +199,9 @@ const Details = styled.div`
   justify-content: space-around;
 `;
 
-const ProductName = styled.span``;
+const ProductName = styled.span`
+  font-weight: 700;
+`;
 
 const ProductSize = styled.span``;
 

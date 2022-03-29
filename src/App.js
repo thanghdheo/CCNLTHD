@@ -13,16 +13,23 @@ import ProductDetail from "./pages/ProductDetail";
 import { Route, Routes } from "react-router-dom";
 import Cart from "./pages/Cart";
 import Login from "./pages/Login";
-import Register from "./pages/Register"
+import Register from "./pages/Register";
+import axios from "axios";
 
 function App() {
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState({});
+
   useEffect(() => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
     }, 3000);
+    setToken(JSON.parse(localStorage.getItem("token")))
   }, []);
+
+  console.log("Token",token)
+
   return (
     <div className={loading ? "App" : ""}>
       {loading ? (
@@ -40,14 +47,17 @@ function App() {
         </>
       ) : (
         <>
-          <NavBar />
+          <NavBar username={token?.user?.fullName} setToken={setToken}/>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/products/:category" element={<Products />} />
             <Route path="/product/:id" element={<ProductDetail />} />
+            <Route
+              path="/login"
+              element={token?.tokenAccess ? <Home /> : <Login setToken={setToken} />}
+            />
           </Routes>
         </>
       )}

@@ -6,3 +6,12 @@
   font-family: 'Urbanist',sans-serif;
   color: #212B36
 } 
+
+@keyframes scale{
+  from{
+    transform: translateX(100%);
+  }
+  to{
+    transform: translateX(0);
+  }
+}

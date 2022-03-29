@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { getSingleProduct } from "../../APIs/Product";
@@ -8,6 +9,8 @@ function ProductItem(props) {
   const { id, img, price, title } = props;
   const [product, setProduct] = useState({});
   const [quantity, setQuantity] = useState(1);
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     getSingleProduct(id).then((data) => setProduct(...data));
@@ -30,17 +33,25 @@ function ProductItem(props) {
       })
     );
   };
+
+  const handleBuyStock = () => {
+    dispatch(
+      addProduct({
+        ...product,
+        quantity,
+      })
+    );
+    navigate('/cart')
+  }
   return (
     <Container>
       <Link to={`/product/${id}`}>
         <Image src={img} alt="" />
       </Link>
       <IconContainer>
-          <Link to={`/product/${id}`} style={{color:'#fff',textDecoration:'none'}}>
-        <Button>
+        <Button onClick={handleBuyStock}>
             mua ngay <i className="wi wi-night-partly-cloudy"></i>
         </Button>
-          </Link>
         <Button onClick={handleAddBuy}>thêm vào giỏ</Button>
       </IconContainer>
       <ProductInfo>
