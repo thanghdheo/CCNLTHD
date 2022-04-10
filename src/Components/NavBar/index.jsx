@@ -12,7 +12,7 @@ import { Badge } from "@mui/material";
 import { getProductHome } from "../../APIs/Product";
 
 function NavBar(props) {
-  const { username,setToken } = props;
+  const { username } = props;
   const [navbar, setNavbar] = useState(false);
   const [toogleSearch, setToogleSearch] = useState(false);
   const [listCategory, setListCategory] = useState([]);
@@ -21,6 +21,7 @@ function NavBar(props) {
   const [show404, setShow404] = useState(true);
 
   const cart = useSelector((state) => state.carts);
+  const user = useSelector((state) => state.users);
 
   const format = (n) => {
     return n.toLocaleString("vi-VN", {
@@ -65,10 +66,6 @@ function NavBar(props) {
     getProductHome().then((data) => setListProduct(data));
   }, []);
 
-  const handleLogout = () =>{
-    localStorage.removeItem("token")
-    setToken({})
-  }
 
   return (
     <Container bg={navbar ? "#fff" : "transparent"}>
@@ -87,10 +84,10 @@ function NavBar(props) {
         </LeftWrapper>
         <RightWrapper>
           <SubMenu>
-            {username ? (
+            {user.user ? (
               <>
-                <MenuItem>{username}</MenuItem>
-                <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
+                <MenuItem>{user.user.fullName}</MenuItem>
+                <MenuItem>Đăng xuất</MenuItem>
               </>
             ) : (
               <>
@@ -155,6 +152,7 @@ export default NavBar;
 const Container = styled.div`
   height: 60px;
   padding: 0 24px;
+  font-size: 14.5px ;
   background-color: ${(props) => props.bg};
   position: fixed;
   top: 0;

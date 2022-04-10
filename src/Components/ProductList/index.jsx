@@ -3,17 +3,21 @@ import styled from "styled-components";
 import { getAllProduct, getProductHome } from "../../APIs/Product";
 import ProductItem from "./ProductItem";
 import moment from "react-moment";
+import { getCarts } from "../../APIs/Cart";
+import { useSelector } from "react-redux";
 
 function ProductList(props) {
   const { count, category, value } = props;
   const [products, setProducts] = useState([]);
+
+
   useEffect(() => {
     category
       ? getAllProduct(category).then((data) => setProducts(data))
       : getProductHome().then((data) => setProducts(data));
   }, [category]);
 
-  console.log(products);
+ 
   return (
     <Container>
       <Wrapper>

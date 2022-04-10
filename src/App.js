@@ -15,20 +15,44 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { setUsername } from "./Redux/UserSlice";
+import { getCartByIdWithStatus, getCartDetail, getCarts } from "./APIs/Cart";
+import { setBillDetail, setBills } from "./Redux/CartSlice";
 
 function App() {
   const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState({});
+  const dispatch = useDispatch();
+
+  const user = useSelector((state) => state.users);
+  const cart = useSelector((state) => state.carts);
+
+  console.log(cart.products)
+
+  useEffect(() => {
+    getCarts().then((res) => {dispatch(setBills(res))});
+  }, [dispatch]);
+
+  useEffect(() => {
+    const res = cart?.bills.find(
+      (item) =>
+        item.billStatus?._id === "ac26c381-8d20-4077-831f-215239cdf61a" &&
+        item.user?._id === user.user._id
+    );
+    getCartDetail(res?._id).then(res => dispatch(setBillDetail(res)))
+  }, [user,cart,dispatch]);
 
   useEffect(() => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
     }, 3000);
-    setToken(JSON.parse(localStorage.getItem("token")))
-  }, []);
 
-  console.log("Token",token)
+    if (JSON.parse(localStorage.getItem("token"))) {
+      console.log(JSON.parse(localStorage.getItem("token"))?.user?.fullName);
+      dispatch(setUsername(JSON.parse(localStorage.getItem("token"))?.user));
+    }
+  }, [dispatch]);
 
   return (
     <div className={loading ? "App" : ""}>
@@ -47,17 +71,14 @@ function App() {
         </>
       ) : (
         <>
-          <NavBar username={token?.user?.fullName} setToken={setToken}/>
+          <NavBar />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/products/:category" element={<Products />} />
             <Route path="/product/:id" element={<ProductDetail />} />
-            <Route
-              path="/login"
-              element={token?.tokenAccess ? <Home /> : <Login setToken={setToken} />}
-            />
+            <Route path="/login" element={<Login />} />
           </Routes>
         </>
       )}

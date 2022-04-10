@@ -50,8 +50,13 @@ function Cart() {
   }
 
   const doc = {
-    _type: "role",
-    name: "Test",
+    _type: "bill",
+    billStatus: {
+      _ref: "7c11ca46-13b1-4988-946a-597939e47df9"
+    },
+    user:{
+      _ref:"e3070093-743f-486e-bcb5-8b4ea5bcdbee"
+    }
   }
 
   const handleCheckOut = () => {

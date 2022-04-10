@@ -1,7 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { getCarts } from "../APIs/Cart";
+
 
 const initialValue = {
   products: [],
+  bills: [],
   quantity: 0,
   total: 0,
 };
@@ -50,9 +53,18 @@ const cartSlice = createSlice({
       state.quantity -= 1;
       state.total -= action.payload.price;
     },
+    setBills: (state,action) => {
+      state.bills = action.payload
+    },
+    addBills: (state,action) => {
+      state.bills.push(action.payload)
+    },
+    setBillDetail: (state,action) => {
+      state.products = action.payload
+    },
   },
 });
 
 const { actions, reducer } = cartSlice;
-export const { addProduct,removeProduct, deleteProduct} = actions;
+export const { addProduct,removeProduct, deleteProduct,setBills,addBills,setBillDetail} = actions;
 export default reducer;

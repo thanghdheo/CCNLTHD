@@ -3,13 +3,15 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Controller } from "react-hook-form";
 import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import swal from "sweetalert";
 import Footer from "../Components/Footer";
+import { loginFailure, loginStart, loginSuccess } from "../Redux/UserSlice";
 
 function Login(props) {
-  const {setToken} = props
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const {
     control,
@@ -23,20 +25,25 @@ function Login(props) {
   });
 
   const handleLogin = async ({ username, password }) => {
-    await axios
-      .post(" https://velzon-authenticate.herokuapp.com/auth/local/login", {
-        username: username,
-        password: password,
-      })
-      .then((res) => {
-        swal("Thông báo !", "Đăng nhập thành công !", "success");
-        localStorage.setItem("token", JSON.stringify(res.data));
-        navigate(-1);
-        setToken(JSON.parse(localStorage.getItem("token")))
-      })
-      .catch(() => {
-        swal("Lỗi !", "Kiểm tra lại tên đăng nhập hoặc mật khẩu !", "error");
-      });
+    dispatch(loginStart());
+    try {
+      const res = await axios.post(
+        "https://velzon-authenticate.herokuapp.com/auth/local/login",
+        { username, password }
+      );
+      dispatch(
+        loginSuccess({
+          currentUser: res.data,
+          user: res.data.user,
+        })
+      );
+      swal("Thông báo !", "Đăng nhập thành công !", "success");
+      localStorage.setItem("token", JSON.stringify(res.data));
+      navigate(-1);
+    } catch (err) {
+      dispatch(loginFailure());
+      swal("Lỗi !", "Kiểm tra lại tên đăng nhập hoặc mật khẩu !", "error");
+    }
   };
   return (
     <Container>
