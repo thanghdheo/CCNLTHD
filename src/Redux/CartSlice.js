@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { getCarts } from "../APIs/Cart";
 
-
 const initialValue = {
   products: [],
   bills: [],
@@ -14,10 +13,12 @@ const cartSlice = createSlice({
   initialState: initialValue,
   reducers: {
     addProduct: (state, action) => {
-      const exists = state.products.find((x) => x._id === action.payload._id);
+      const exists = state.products.find(
+        (x) => x.product._id === action.payload.product._id
+      );
       if (exists) {
         state.products = state.products.map((x) =>
-          x._id === action.payload._id
+          x.product._id === action.payload.product._id
             ? {
                 ...x,
                 quantity: x.quantity + 1,
@@ -33,10 +34,13 @@ const cartSlice = createSlice({
       }
     },
     removeProduct: (state, action) => {
-      const exists = state.products.find((x) => x._id === action.payload._id);
+      const exists = state.products.find(
+        (x) => x.product._id === action.payload.product._id
+      );
       if (exists) {
+        console.log("Start update");
         state.products = state.products.map((x) =>
-          x._id === action.payload._id
+          x.product._id === action.payload.product._id
             ? {
                 ...x,
                 quantity: x.quantity - 1,
@@ -48,23 +52,37 @@ const cartSlice = createSlice({
       }
     },
     deleteProduct: (state, action) => {
-      const exists = state.products.findIndex((x) => x._id === action.payload._id);
-      state.products.splice(exists,1)
+      const exists = state.products.findIndex(
+        (x) => x._id === action.payload._id
+      );
+      state.products.splice(exists, 1);
       state.quantity -= 1;
       state.total -= action.payload.price;
     },
-    setBills: (state,action) => {
-      state.bills = action.payload
+    setBills: (state, action) => {
+      state.bills = action.payload;
     },
-    addBills: (state,action) => {
-      state.bills.push(action.payload)
+    addBills: (state, action) => {
+      state.bills.push(action.payload);
     },
-    setBillDetail: (state,action) => {
-      state.products = action.payload
+    setBillDetail: (state, action) => {
+      state.products = action.payload;
+    },
+    setTotal: (state, action) => {
+      state.quantity = action.payload.quantity;
+      state.total = action.payload.total;
     },
   },
 });
 
 const { actions, reducer } = cartSlice;
-export const { addProduct,removeProduct, deleteProduct,setBills,addBills,setBillDetail} = actions;
+export const {
+  addProduct,
+  removeProduct,
+  deleteProduct,
+  setBills,
+  addBills,
+  setBillDetail,
+  setTotal,
+} = actions;
 export default reducer;

@@ -18,7 +18,8 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { setUsername } from "./Redux/UserSlice";
 import { getCartByIdWithStatus, getCartDetail, getCarts } from "./APIs/Cart";
-import { setBillDetail, setBills } from "./Redux/CartSlice";
+import { setBillDetail, setBills, setTotal } from "./Redux/CartSlice";
+import History from "./pages/History";
 
 function App() {
   const [loading, setLoading] = useState(false);
@@ -27,20 +28,26 @@ function App() {
   const user = useSelector((state) => state.users);
   const cart = useSelector((state) => state.carts);
 
-  console.log(cart.products)
-
   useEffect(() => {
     getCarts().then((res) => {dispatch(setBills(res))});
   }, [dispatch]);
 
   useEffect(() => {
+  let total = 0
     const res = cart?.bills.find(
       (item) =>
         item.billStatus?._id === "ac26c381-8d20-4077-831f-215239cdf61a" &&
         item.user?._id === user.user._id
     );
-    getCartDetail(res?._id).then(res => dispatch(setBillDetail(res)))
-  }, [user,cart,dispatch]);
+    getCartDetail(res?._id).then(res =>{ 
+      console.log("Respone : ",res)
+      res.map(item => total += item.quantity*item.price)
+      dispatch(setBillDetail(res))
+      dispatch(setTotal({quantity: res.length,
+        total: total
+      }))
+    })
+  }, [dispatch,user,cart.bills]);
 
   useEffect(() => {
     setLoading(true);
@@ -49,7 +56,6 @@ function App() {
     }, 3000);
 
     if (JSON.parse(localStorage.getItem("token"))) {
-      console.log(JSON.parse(localStorage.getItem("token"))?.user?.fullName);
       dispatch(setUsername(JSON.parse(localStorage.getItem("token"))?.user));
     }
   }, [dispatch]);
@@ -76,6 +82,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/history" element={<History />} />
             <Route path="/products/:category" element={<Products />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/login" element={<Login />} />

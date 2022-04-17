@@ -10,6 +10,7 @@ import { useSelector } from "react-redux";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { Badge } from "@mui/material";
 import { getProductHome } from "../../APIs/Product";
+import { useNavigate } from "react-router-dom";
 
 function NavBar(props) {
   const { username } = props;
@@ -19,6 +20,7 @@ function NavBar(props) {
   const [listProduct, setListProduct] = useState([]);
   const [listProductSearch, setListProductSearch] = useState([]);
   const [show404, setShow404] = useState(true);
+  const navigate = useNavigate()
 
   const cart = useSelector((state) => state.carts);
   const user = useSelector((state) => state.users);
@@ -54,7 +56,11 @@ function NavBar(props) {
     }
   };
 
- 
+  const logOut =  () => {
+    localStorage.removeItem('token')
+    navigate('/')
+    window.location.reload(false)
+  }
 
   useEffect(() => {
     changeBackground();
@@ -65,7 +71,6 @@ function NavBar(props) {
     getListCategory().then((data) => setListCategory(data));
     getProductHome().then((data) => setListProduct(data));
   }, []);
-
 
   return (
     <Container bg={navbar ? "#fff" : "transparent"}>
@@ -87,7 +92,7 @@ function NavBar(props) {
             {user.user ? (
               <>
                 <MenuItem>{user.user.fullName}</MenuItem>
-                <MenuItem>Đăng xuất</MenuItem>
+                <MenuItem onClick={logOut}>Đăng xuất</MenuItem>
               </>
             ) : (
               <>
@@ -98,7 +103,7 @@ function NavBar(props) {
                   <MenuItem>Đăng ký</MenuItem>
                 </Link>
               </>
-            )} 
+            )}
             <MenuItem onClick={() => setToogleSearch(!toogleSearch)}>
               Tìm kiếm
             </MenuItem>
@@ -113,7 +118,7 @@ function NavBar(props) {
         </RightWrapper>
       </Wrapper>
       {toogleSearch && (
-        <SearchContainer show={toogleSearch}>
+        <SearchContainer show={toogleSearch} >
           <SearchWrapper>
             <SearchHeader>
               <h4>TÌM KIẾM</h4>
@@ -130,7 +135,15 @@ function NavBar(props) {
               {listProductSearch.map((item) => (
                 <ResultItem>
                   <ResultRight>
-                    <ResultName>{item.name}</ResultName>
+                    <Link
+                      to={`/product/${item._id}`}
+                      onClick={() => {
+                        setToogleSearch(false);
+                        setListProductSearch([]);
+                      }}
+                    >
+                      <ResultName>{item.name}</ResultName>
+                    </Link>
                     <ResultPrice>{format(item.price)}</ResultPrice>
                   </ResultRight>
                   <ResultLeft>
@@ -152,7 +165,7 @@ export default NavBar;
 const Container = styled.div`
   height: 60px;
   padding: 0 24px;
-  font-size: 14.5px ;
+  font-size: 14.5px;
   background-color: ${(props) => props.bg};
   position: fixed;
   top: 0;
@@ -272,6 +285,7 @@ const ResultItem = styled.li`
 `;
 const ResultRight = styled.div``;
 const ResultName = styled.p`
+  cursor: pointer;
   font-size: 15px;
   font-weight: 700;
   padding: 4px 0;

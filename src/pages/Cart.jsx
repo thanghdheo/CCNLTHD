@@ -1,17 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AddIcon from "@mui/icons-material/Add";
 import { getSingleProduct } from "../APIs/Product";
 import RemoveIcon from "@mui/icons-material/Remove";
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import styled from "styled-components";
 import Footer from "../Components/Footer";
 import { addProduct, deleteProduct, removeProduct } from "../Redux/CartSlice";
 import { client } from "../APIs";
+import swal from "sweetalert";
+import { useNavigate } from "react-router-dom";
 
 function Cart() {
   const cart = useSelector((state) => state.carts);
-  const dispatch = useDispatch()
+  const user = useSelector((state) => state.users);
+
+  const [cartId, setCartId] = useState();
+
+  const dispatch = useDispatch();
+
+  const navigate = useNavigate()
 
   const format = (n) => {
     return n.toLocaleString("vi-VN", {
@@ -20,60 +28,137 @@ function Cart() {
     });
   };
 
-  const  handleAddProduct = async (id) => {
-    const product = await getSingleProduct(id)
-    dispatch(
-      addProduct({
-        ...product[0],
-        quantity :1,
-      })
+  useEffect(() => {
+    const res = cart?.bills?.find(
+      (item) =>
+        item.billStatus._id === "ac26c381-8d20-4077-831f-215239cdf61a" &&
+        item.user._id === user.user._id
     );
-  }
-  const  handleRemoveProduct = async (id) => {
-    const product = await getSingleProduct(id)
-    dispatch(
-      removeProduct({
-        ...product[0],
-        quantity :1,
-      })
-    );
-  }
+    setCartId(res?._id);
+  }, [cart, user]);
 
-  const  handleDeleteProduct = async (id,price) => {
-    const product = await getSingleProduct(id)
+  console.log(cartId);
+
+  const handleAddProduct = async (id, quantity) => {
+    const product = await getSingleProduct(id);
+    console.log(product);
+    const check = cart.products.find((item) => item.product._id === id);
+    await client
+      .patch(check._id) // Document ID to patch
+      .set({ quantity: quantity + 1 }) // Shallow merge\
+      .commit() // Perform the patch and return a promise
+      .then((updatedBike) => {
+        dispatch(
+          addProduct({
+            _id: product[0]._id,
+            price: product[0].price,
+            product: {
+              ...product[0],
+            },
+            quantity: 1,
+          })
+        );
+      })
+      .catch((err) => {
+        console.error("Oh no, the update failed: ", err.message);
+      });
+
+    await client
+      .patch(id) // Document ID to patch
+      .set({ quantity: product[0].quantity - 1 }) // Shallow merge\
+      .commit() // Perform the patch and return a promise
+      .then((updatedBike) => {
+        console.log("success", updatedBike);
+      })
+      .catch((err) => {
+        console.error("Oh no, the update failed: ", err.message);
+      });
+  };
+  const handleRemoveProduct = async (id, quantity) => {
+    const product = await getSingleProduct(id);
+    const check = cart.products.find((item) => item.product._id === id);
+    await client
+      .patch(check._id) // Document ID to patch
+      .set({ quantity: quantity - 1 }) // Shallow merge\
+      .commit() // Perform the patch and return a promise
+      .then((updatedBike) => {
+        dispatch(
+          removeProduct({
+            _id: product[0]._id,
+            price: product[0].price,
+            product: {
+              ...product[0],
+            },
+            quantity: 1,
+          })
+        );
+      })
+      .catch((err) => {
+        console.error("Oh no, the update failed: ", err.message);
+      });
+
+    await client
+      .patch(id) // Document ID to patch
+      .set({ quantity: product[0].quantity + 1 }) // Shallow merge\
+      .commit() // Perform the patch and return a promise
+      .then((updatedBike) => {
+        console.log("success", updatedBike);
+      })
+      .catch((err) => {
+        console.error("Oh no, the update failed: ", err.message);
+      });
+  };
+
+  const handleDeleteProduct = async (id, price) => {
+    const product = await getSingleProduct(id);
     dispatch(
       deleteProduct({
         ...product[0],
-        price
+        price,
       })
     );
-  }
+  };
 
-  const doc = {
-    _type: "bill",
-    billStatus: {
-      _ref: "7c11ca46-13b1-4988-946a-597939e47df9"
-    },
-    user:{
-      _ref:"e3070093-743f-486e-bcb5-8b4ea5bcdbee"
-    }
-  }
+  const handleCheckOut = async () => {
+    await client
+      .patch(cartId) // Document ID to patch
+      .set({
+        billStatus: {
+          _ref: "752f5b81-1314-4e21-adce-3b39d4561fe4",
+        },
+      }) // Shallow merge\
+      .commit() // Perform the patch and return a promise
+      .then((updatedBike) => {
+        console.log("success", updatedBike);
+        swal("Thông báo", "Thanh toán thành công", "success");
+      })
+      .catch((err) => {
+        console.error("Oh no, the update failed: ", err.message);
+      });
 
-  const handleCheckOut = () => {
-    client.create(doc).then((res) => {
-      console.log(`Bill was created, document ID is ${res._id}`)
-    })
-  }
+    cart.bills.map((item) =>
+      item._id === cartId
+        ? {
+            ...item,
+            billStatus: {
+              ...item.billStatus,
+              _id: "752f5b81-1314-4e21-adce-3b39d4561fe4",
+            },
+          }
+        : item
+    );
+
+    navigate("/history")
+  };
 
   return (
     <Container>
       <Wrapper>
         <Title>GIỎ HÀNG CỦA BẠN</Title>
         <Top>
-          <TopButton>TIẾP TỤC MUA SẮM</TopButton>
+          <TopButton onClick={() => navigate(-1)}>TIẾP TỤC MUA SẮM</TopButton>
           <TopTexts>
             <TopText>Giỏ hàng({cart.quantity})</TopText>
-            <TopText>Danh sách đợi (0)</TopText>
           </TopTexts>
         </Top>
         <Bottom>
@@ -81,21 +166,45 @@ function Cart() {
             {cart?.products.map((item) => (
               <Product>
                 <ProductDetail>
-                  <Image src={item?.image?.asset?.url} />
+                  <Image src={item?.product?.image?.asset?.url} />
                   <Details>
-                    <ProductName>{item.name}</ProductName>
+                    <ProductName>{item?.product?.name}</ProductName>
                   </Details>
                 </ProductDetail>
                 <PriceDetail>
                   <ProductAmountContainer>
-                    <AddIcon onClick={() =>  handleAddProduct(item._id)}  style={{cursor: 'pointer'}} />
+                    <AddIcon
+                      onClick={() =>
+                        handleAddProduct(item.product._id, item.quantity)
+                      }
+                      style={{ cursor: "pointer" }}
+                    />
                     <ProductAmount>{item.quantity}</ProductAmount>
-                    <RemoveIcon onClick={item.quantity > 1 && ( () =>  handleRemoveProduct(item._id))} style={{cursor: 'pointer'}}/>
-                    <DeleteOutlineIcon onClick={() =>  handleDeleteProduct(item._id,item.price)} style={{color:'red',cursor: 'pointer'}} />
+                    <RemoveIcon
+                      onClick={
+                        item.quantity > 1 &&
+                        (() =>
+                          handleRemoveProduct(item.product._id, item.quantity))
+                      }
+                      style={{ cursor: "pointer" }}
+                    />
+                    {/* <DeleteOutlineIcon
+                      onClick={() =>
+                        handleDeleteProduct(item.product._id, item.price)
+                      }
+                      style={{ color: "red", cursor: "pointer" }}
+                    /> */}
                   </ProductAmountContainer>
-                  <ProductPrice>{format(item.price)}
-                  </ProductPrice>
-                  
+                  <span
+                    style={{
+                      fontSize: "24px",
+                      padding: "4px 0",
+                      marginRight: "24px",
+                    }}
+                  >
+                    X
+                  </span>
+                  <ProductPrice>{format(item.price)}</ProductPrice>
                 </PriceDetail>
               </Product>
             ))}
@@ -119,18 +228,7 @@ function Cart() {
               <SummaryText>Tổng cộng</SummaryText>
               <SummaryPrice>{format(cart.total)} </SummaryPrice>
             </SummaryItem>
-
-            {/* <StripeCheckout
-                  name="SREEL"
-                  image="https://avatars.githubusercontent.com/u/1486366?v=4"
-                  billingAddress
-                  shippingAddress
-                  description={`Your total is $${cart.total}`}
-                  amount={cart.total * 100}
-                  stripeKey={"pk_test_51KRGNrKyG1K6atfRya9NVyO2Hb6qEDKSu3OZI4ybO01UGnp0Z4PkYe09TGKPivtEzX3gJeZmu2fRU05mzhpsteb800vfAH7TY6"}
-                > */}
-            <Button onClick = {handleCheckOut}>THANH TOÁN NGAY</Button>
-            {/* </StripeCheckout> */}
+            <Button onClick={handleCheckOut}>THANH TOÁN NGAY</Button>
           </Summary>
         </Bottom>
       </Wrapper>
@@ -270,6 +368,12 @@ const Button = styled.button`
   background-color: black;
   color: #fff;
   font-weight: 600;
+  cursor: pointer;
+  &:hover {
+    background-color: #fff;
+    color: #000;
+    transition: all 0.5s ease;
+  }
 `;
 
 export default Cart;

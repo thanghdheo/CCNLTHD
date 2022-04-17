@@ -5,18 +5,14 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import swal from "sweetalert";
 import { client } from "../../APIs";
-import {
-  getCartByIdWithStatus,
-  getCartDetail,
-  getCarts,
-} from "../../APIs/Cart";
 import { getSingleProduct } from "../../APIs/Product";
 import { addBills, addProduct } from "../../Redux/CartSlice";
 function ProductItem(props) {
   const { id, img, price, title } = props;
   const [product, setProduct] = useState({});
   const [quantity, setQuantity] = useState(1);
-  const [cartId,setCartId] = useState()
+  const [productQuantity, setProductQuantity] = useState();
+  const [cartId, setCartId] = useState();
 
   const navigate = useNavigate();
 
@@ -24,8 +20,20 @@ function ProductItem(props) {
   const cart = useSelector((state) => state.carts);
 
   useEffect(() => {
-    getSingleProduct(id).then((data) => setProduct(...data));
+    getSingleProduct(id).then((data) =>
+      setProduct({
+        _id: data[0]._id,
+        price: data[0].price,
+        product: {
+          ...data[0],
+        },
+      })
+    );
   }, [id]);
+
+  useEffect(() => {
+    setProductQuantity(product?.product?.quantity);
+  }, [product]);
 
   useEffect(() => {
     const res = cart?.bills?.find(
@@ -33,8 +41,8 @@ function ProductItem(props) {
         item.billStatus._id === "ac26c381-8d20-4077-831f-215239cdf61a" &&
         item.user._id === user.user._id
     );
-    setCartId(res?._id)
-  },[cart,user])
+    setCartId(res?._id);
+  }, [cart, user]);
 
   const format = (n) => {
     return n.toLocaleString("vi-VN", {
@@ -44,12 +52,6 @@ function ProductItem(props) {
   };
 
   const dispatch = useDispatch();
-
-  // const handleCheckOut = () => {
-  //   client.create(doc).then((res) => {
-  //     console.log(`Bill was created, document ID is ${res._id}`)
-  //   })
-  // }
 
   const bill = {
     _type: "bill",
@@ -62,56 +64,247 @@ function ProductItem(props) {
   };
 
   const billdetail = {
-  _type: "bill-detail",
-  bill:{
-    _ref: cartId
-  },
-  price: price,
-  product:{
-    _ref: id
-  },
-  quantity: quantity
-}
+    _type: "bill-detail",
+    bill: {
+      _ref: cartId,
+    },
+    price: price,
+    product: {
+      _ref: id,
+    },
+    quantity: quantity,
+  };
+
+  console.log(cartId);
 
   const handleAddBuy = async () => {
-    const exist = cart?.bills?.some(
-      (item,index) =>
-        item.billStatus._id === "ac26c381-8d20-4077-831f-215239cdf61a" &&
-        item.user._id === user.user._id
-    );
-    if (!exist) {
-      await client.create(bill).then((res) => {
-        console.log(`Bill was created, document ID is ${res._id}`);
-        dispatch(
-          addProduct({
-            ...product,
-            quantity,
-          })
+    console.log(id);
+
+    if (productQuantity > 0) {
+      if (JSON.parse(localStorage.getItem("token"))) {
+        const exist = cart?.bills?.some(
+          (item, index) =>
+            item.billStatus._id === "ac26c381-8d20-4077-831f-215239cdf61a" &&
+            item.user._id === user.user._id
         );
-        dispatch(addBills({
-          _id: res._id,
-          billStatus:{
-            _id: res.billStatus._ref
-          },
-          user:{
-            _id: res.user._ref
+        if (!exist) {
+          await client.create(bill).then((res) => {
+            dispatch(
+              addBills({
+                _id: res._id,
+                billStatus: {
+                  _id: res.billStatus._ref,
+                },
+                user: {
+                  _id: res.user._ref,
+                },
+              })
+            );
+          });
+
+          await client.create(billdetail).then((res) => {
+            console.log(res);
+            dispatch(
+              addProduct({
+                ...product,
+                _id: res._id,
+                quantity,
+              })
+            );
+          });
+
+          await client
+            .patch(id) // Document ID to patch
+            .set({ quantity: productQuantity - 1 }) // Shallow merge\
+            .commit() // Perform the patch and return a promise
+            .then((updatedBike) => {
+              console.log("success", updatedBike);
+            })
+            .catch((err) => {
+              console.error("Oh no, the update failed: ", err.message);
+            });
+
+          setProductQuantity(productQuantity - 1);
+        } else {
+          const check = cart.products.find(
+            (item) => item.product._id === product._id
+          );
+          console.log("Check : ", check);
+          if (!check) {
+            await client.create(billdetail).then((res) => {
+              console.log(res);
+
+              dispatch(
+                addProduct({
+                  ...product,
+                  _id: res._id,
+                  quantity,
+                })
+              );
+            });
+
+            await client
+              .patch(id) // Document ID to patch
+              .set({ quantity: productQuantity - 1 }) // Shallow merge\
+              .commit() // Perform the patch and return a promise
+              .then((updatedBike) => {
+                console.log("success", updatedBike);
+              })
+              .catch((err) => {
+                console.error("Oh no, the update failed: ", err.message);
+              });
+
+            setProductQuantity(productQuantity - 1);
+          } else {
+            await client
+              .patch(check._id) // Document ID to patch
+              .set({ quantity: check.quantity + 1 }) // Shallow merge\
+              .commit() // Perform the patch and return a promise
+              .then((updatedBike) => {
+                console.log("success", updatedBike);
+                dispatch(
+                  addProduct({
+                    ...product,
+                    quantity,
+                  })
+                );
+              })
+              .catch((err) => {
+                console.error("Oh no, the update failed: ", err.message);
+              });
+            await client
+              .patch(id) // Document ID to patch
+              .set({ quantity: productQuantity - 1 }) // Shallow merge\
+              .commit() // Perform the patch and return a promise
+              .then((updatedBike) => {
+                console.log("success", updatedBike);
+              })
+              .catch((err) => {
+                console.error("Oh no, the update failed: ", err.message);
+              });
+
+            setProductQuantity(productQuantity - 1);
           }
-        }));
-      });
+        }
+      } else {
+        navigate("/login");
+      }
     } else {
-      // await client.create(billdetail).then((res) => {
-      //   console.log(`Bill detail was created, document ID is ${res._id}`);
-        dispatch(
-          addProduct({
-            ...product,
-            quantity,
-          })
-        );
-      // });
+      swal("Thông báo", "Sản phẩm đã hết hàng", "warning");
     }
   };
 
-  const handleBuyStock = () => {};
+  const handleBuyStock = async () => {
+    if (productQuantity > 0) {
+      if (JSON.parse(localStorage.getItem("token"))) {
+        const exist = cart?.bills?.some(
+          (item, index) =>
+            item.billStatus._id === "ac26c381-8d20-4077-831f-215239cdf61a" &&
+            item.user._id === user.user._id
+        );
+        if (!exist) {
+          await client.create(bill).then((res) => {
+            dispatch(
+              addBills({
+                _id: res._id,
+                billStatus: {
+                  _id: res.billStatus._ref,
+                },
+                user: {
+                  _id: res.user._ref,
+                },
+              })
+            );
+          });
+
+          await client.create(billdetail).then((res) => {
+            navigate("/cart");
+            dispatch(
+              addProduct({
+                ...product,
+                _id: res._id,
+                quantity,
+              })
+            );
+          });
+
+          await client
+            .patch(id) // Document ID to patch
+            .set({ quantity: productQuantity - 1 }) // Shallow merge\
+            .commit() // Perform the patch and return a promise
+            .then((updatedBike) => {
+              console.log("success", updatedBike);
+            })
+            .catch((err) => {
+              console.error("Oh no, the update failed: ", err.message);
+            });
+
+          setProductQuantity(productQuantity - 1);
+        } else {
+          const check = cart.products.find(
+            (item) => item.product._id === product._id
+          );
+          if (!check) {
+            await client
+              .patch(id) // Document ID to patch
+              .set({ quantity: productQuantity - 1 }) // Shallow merge\
+              .commit() // Perform the patch and return a promise
+              .then((updatedBike) => {
+                console.log("success", updatedBike);
+              })
+              .catch((err) => {
+                console.error("Oh no, the update failed: ", err.message);
+              });
+
+            setProductQuantity(productQuantity - 1);
+            await client.create(billdetail).then((res) => {
+              dispatch(
+                addProduct({
+                  ...product,
+                  _id: res._id,
+                  quantity,
+                })
+              );
+              navigate("/cart");
+            });
+          } else {
+            await client
+              .patch(id) // Document ID to patch
+              .set({ quantity: productQuantity - 1 }) // Shallow merge\
+              .commit() // Perform the patch and return a promise
+              .then((updatedBike) => {
+                console.log("success", updatedBike);
+              })
+              .catch((err) => {
+                console.error("Oh no, the update failed: ", err.message);
+              });
+
+            setProductQuantity(productQuantity - 1);
+            await client
+              .patch(check._id)
+              .set({ quantity: check.quantity + 1 })
+              .commit()
+              .then((updatedBike) => {
+                dispatch(
+                  addProduct({
+                    ...product,
+                    quantity,
+                  })
+                );
+                navigate("/cart");
+              })
+              .catch((err) => {
+                console.error("Oh no, the update failed: ", err.message);
+              });
+          }
+        }
+      } else {
+        navigate("/login");
+      }
+    } else {
+      swal("Thông báo", "Sản phẩm đã hết hàng", "warning");
+    }
+  };
 
   return (
     <Container>
@@ -150,6 +343,11 @@ const Container = styled.div`
   padding: 12 px;
   position: relative;
 
+  &:hover {
+    opacity: 0.8;
+    transition: all 0.5s ease;
+  }
+
   &:hover ${IconContainer} {
     opacity: 1;
   }
@@ -174,6 +372,11 @@ const Button = styled.button`
   font-size: 10px;
   margin: 6px;
   cursor: pointer;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.9);
+    transition: all 0.5s ease;
+  }
 `;
 
 const ProductInfo = styled.div`
@@ -198,27 +401,3 @@ const Price = styled.span`
 `;
 
 export default ProductItem;
-
-
-
-// if (!isBuy) {
-//   client.create(bill).then((res) => {
-//     console.log(`Bill was created, document ID is ${res._id}`);
-//     setCartId(res._id)
-//   });
-//   // dispatch(
-//   //   addProduct({
-//   //     ...product,
-//   //     quantity,
-//   //   })
-//   // );
-//   // client.create(billdetail).then((res) => {
-//   //   console.log(`Bill detail was created, document ID is ${res._id}`)
-//   // })
-// } else {
-//   // client.create(billdetail).then((res) => {
-//   //   console.log(`Bill detail was created, document ID is ${res._id}`)
-//   // })
-//   swal("Thông báo", "Bạn có giỏ hàng chưa thanh toán", "error");
-
-// }

@@ -13,6 +13,11 @@ function CategoryItem(props) {
 const Container = styled.div`
     padding : 6px;
     cursor: pointer;
+
+    &:hover{
+      opacity: 0.8 ;
+      padding: 4px ;
+    }
 `;
 
 const Image = styled.img`

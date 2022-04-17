@@ -142,12 +142,17 @@ const BackText = styled.span`
 
 const Button = styled.button`
   outline: none;
-  border: none;
+  border: 1px solid #000;
   padding: 12px 24px;
   background-color: #000;
   color: #fff;
   font-weight: 700;
   margin-bottom: 12px;
+  &:hover {
+    background-color: #fff;
+    color: #000;
+    transition: all 0.5s ease;
+  }
 `;
 
 export default Login;

@@ -53,7 +53,7 @@ export const getSingleProduct = (id) => {
         description,
         name,
         price,
-        quantiy,
+        quantity,
         slug,
         image{
             asset->{
