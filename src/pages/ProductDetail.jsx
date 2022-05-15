@@ -293,7 +293,6 @@ function ProductDetail() {
               .catch((err) => {
                 console.error("Oh no, the update failed: ", err.message);
               });
-
             setProductQuantity(productQuantity - 1);
           }
         }
